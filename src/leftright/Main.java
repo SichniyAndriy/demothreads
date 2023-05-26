@@ -1,24 +1,29 @@
 package leftright;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+
 public class Main {
     public static void main(String[] args) throws InterruptedException {
-        Walk walk = new Walk(20);
-        Thread threadLeft = new Thread(new Left(walk), "LeftThread");
-        Thread threadRight = new Thread(new Right(walk), "RightThread");
+        final Walk walk = new Walk(20);
+        ThreadFactory threadFactory = Executors.defaultThreadFactory();
+
+        Thread threadLeft = threadFactory.newThread(() -> {
+            while (walk.decrementSteps() > 0) {
+                walk.stepLeft();
+            }
+        });
+        threadLeft.setName("LeftThread");
+
+        Thread threadRight = threadFactory.newThread(() -> {
+            while (walk.decrementSteps() > 0) {
+                walk.stepRight();
+            }
+        });
+        threadRight.setName("RightThread");
 
         threadLeft.start();
         threadRight.start();
-        threadLeft.join();
-        threadRight.join();
-
-        System.out.println("\nNext walking:\n");
-
-        walk = new Walk(20, false);
-        Thread leftThread = new Thread(new Left(walk), "LeftThread");
-        Thread rightThread = new Thread(new Right(walk), "RightThread");
-
-        leftThread.start();
-        rightThread.start();
         threadLeft.join();
         threadRight.join();
     }
